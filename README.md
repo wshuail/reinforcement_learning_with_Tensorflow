@@ -5,6 +5,9 @@ Generally they are for learning and basic understanding, but not production.
 
 1. Tabular Q Learning
 2. Sarsa
+3. DQN
+4. DQN-2.0
+5. DDQN(Double DQN)
 
 Others will be updated in the near future.   
   

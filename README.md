@@ -5,14 +5,14 @@ Generally they are for learning and basic understanding, but not production.
 
 1. Tabular Q Learning
 2. Sarsa
-3. DQN
-4. DQN-2.0
-5. DDQN(Double DQN)
+3. [DQN](https://arxiv.org/abs/1312.5602)  
+4. [Double DQN](https://www.nature.com/nature/journal/v518/n7540/pdf/nature14236.pdf)  
+5. [Double DQN 2.0](https://arxiv.org/abs/1509.06461) 
 
 Others will be updated in the near future.   
   
   
 Reference:
-1. Movan Zhou https://github.com/MorvanZhou/Reinforcement-learning-with-tensorflow
-2. Jaromír https://github.com/jaara/AI-blog
-3. https://github.com/deeplearninc/relaax
+1. [Movan Zhou]( https://github.com/MorvanZhou/Reinforcement-learning-with-tensorflow)
+2. [Jaromír]( https://github.com/jaara/AI-blog)  
+3. [relaax]( https://github.com/deeplearninc/relaax)

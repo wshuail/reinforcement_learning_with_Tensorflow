@@ -3,8 +3,7 @@
 
 import gym
 import matplotlib.pyplot as plt
-import numpy as np
-from DQN import DQN
+from Double_DQN import DoubleDQN
 
 EPISODES = 300
 RENDER = False
@@ -16,7 +15,8 @@ env = env.unwrapped
 observation_space = env.observation_space.shape[0]
 actions_space = env.action_space.n
 
-agent = DQN(n_states=observation_space, n_actions=actions_space)
+agent = DoubleDQN(n_states=observation_space, n_actions=actions_space,
+                  double_dqn=True)
 
 
 def run():

@@ -9,13 +9,13 @@ import matplotlib.pyplot as plt
 
 class DQN(object):
     def __init__(self, n_states, n_actions, learning_rate=0.0003, epsilon=1,
-                 epsilon_min=0.001, epsilon_decay=0.001, gamma=0.9, batch_size=50):
+                 epsilon_min=0.001, epsilon_decay_step=300, gamma=0.9, batch_size=50):
         self.n_states = n_states
         self.n_actions = n_actions
         self.learning_rate = learning_rate
         self.epsilon = epsilon
         self.epsilon_min = epsilon_min
-        self.epsilon_decay = epsilon_decay
+        self.epsilon_decay_step = epsilon_decay_step
         self.gamma = gamma
         self.batch_size = batch_size
 
@@ -23,7 +23,7 @@ class DQN(object):
 
         self.memory_size = 5000
         self.memory_counter = 0
-        self.memory = np.zeros([self.memory_size, self.n_states * 2 + 2])
+        self.memory = np.zeros([self.memory_size, self.n_states * 2 + 3])
 
         self._build_net()
 
@@ -57,15 +57,15 @@ class DQN(object):
 
     def choose_action(self, s):
         s = s[np.newaxis, :]
-        if np.random.uniform() < self.epsilon:
+        if np.random.uniform() > self.epsilon:
             action_values = self.session.run(self.q_eval, feed_dict={self.s: s})
             action = np.argmax(action_values)
         else:
             action = np.random.choice(range(self.n_actions))
         return action
 
-    def store_transition(self, s, a, r, s_):
-        transition = np.hstack((s, a, r, s_))
+    def store_transition(self, s, a, r, s_, terminal):
+        transition = np.hstack((s, a, r, s_, terminal))
         index = self.memory_counter % self.memory_size
         self.memory[index, :] = transition
         self.memory_counter += 1
@@ -80,11 +80,12 @@ class DQN(object):
         bs = batch_memory[:, :self.n_states]
         ba = batch_memory[:, self.n_states]
         br = batch_memory[:, self.n_states+1]
-        bs_ = batch_memory[:, -self.n_states:]
+        bs_ = batch_memory[:, -(self.n_states+1):-1]
+        bt = batch_memory[:, -1]
 
         q_next = self.session.run(self.q_eval, feed_dict={self.s: bs_})
         q_next = np.max(q_next, axis=1)
-        q_target = br + self.gamma*q_next
+        q_target = br + self.gamma*q_next*bt
 
         _, loss = self.session.run([self.train_op, self.loss],
                                    feed_dict={self.s: bs,
@@ -94,7 +95,7 @@ class DQN(object):
         self.loss_his.append(loss)
 
         self.learning_step += 1
-        self.epsilon = self.epsilon_min + (self.epsilon - self.epsilon_min)*np.exp(-self.epsilon_decay*self.learning_step)
+        self.epsilon -= (self.epsilon - self.epsilon_min)/self.epsilon_decay_step
 
     def plot_result(self, data, x_label, y_label):
         plt.plot(np.arange(len(data)), data)

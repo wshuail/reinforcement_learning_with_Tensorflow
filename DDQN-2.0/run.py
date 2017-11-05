@@ -5,7 +5,7 @@ import gym
 import matplotlib.pyplot as plt
 from Double_DQN import DoubleDQN
 
-EPISODES = 300
+EPISODES = 3000
 RENDER = False
 
 env = gym.make('CartPole-v0')
@@ -38,10 +38,12 @@ def run():
             a = agent.choose_action(s)
 
             s_, r, done, info = env.step(a)
+            r = -10 if done else r
+            terminal = 0 if done else 1
             ep_r += r
             total_r += r
 
-            agent.store_transition(s, a, r, s_)
+            agent.store_transition(s, a, r, s_, terminal)
 
             if agent.memory_counter >= agent.batch_size:
                 agent.learn()
@@ -53,15 +55,15 @@ def run():
 
             step += 1
 
-        avg_reward = total_r/(episode+1)
-        ep_r_hist.append(avg_reward)
-
-        if episode % 50:
+        if episode % 50 == 0:
             print('Episode %s Reward %s' % (episode, ep_r))
 
-        plt.cla()
-        agent.plot_result(data=ep_r_hist, x_label='Episodes', y_label='Reward')
-        plt.pause(0.0000001)
+        if episode >= 100:
+            avg_reward = total_r / (episode + 1)
+            ep_r_hist.append(avg_reward)
+            plt.cla()
+            agent.plot_result(data=ep_r_hist, x_label='Episodes', y_label='Reward')
+            plt.pause(0.0000001)
     plt.ioff()
     plt.show()
 

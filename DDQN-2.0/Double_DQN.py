@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 class DoubleDQN(object):
     def __init__(self, n_states, n_actions, double_dqn=False, learning_rate=0.001,
-                 epsilon=1, epsilon_min=0.001, epsilon_decay=0.001,
+                 epsilon=1, epsilon_min=0.001, epsilon_decay_step=300,
                  gamma=0.95, batch_size=50):
         self.n_states = n_states
         self.n_actions = n_actions
@@ -17,7 +17,7 @@ class DoubleDQN(object):
         self.learning_rate = learning_rate
         self.epsilon = epsilon
         self.epsilon_min = epsilon_min
-        self.epsilon_decay = epsilon_decay
+        self.epsilon_decay_step = epsilon_decay_step
         self.gamma = gamma
         self.batch_size = batch_size
 
@@ -26,7 +26,7 @@ class DoubleDQN(object):
 
         self.memory_size = 5000
         self.memory_counter = 0
-        self.memory = np.zeros([self.memory_size, self.n_states * 2 + 2])
+        self.memory = np.zeros([self.memory_size, self.n_states * 2 + 3])
 
         self._build_net()
 
@@ -78,29 +78,30 @@ class DoubleDQN(object):
             optimizer = tf.train.GradientDescentOptimizer(self.learning_rate)
             self.train_op = optimizer.minimize(self.loss)
 
-    def _replace_target_params(self):
+    def _update_params(self):
         e_params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='eval_net')
         t_params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='target_net')
-        [tf.assign(t, e) for t, e in zip(t_params, e_params)]  # update target net params
+        update_params_op = [tf.assign(t, e) for t, e in zip(t_params, e_params)]  # update target net params
+        self.session.run(update_params_op)
 
     def choose_action(self, s):
         s = s[np.newaxis, :]
-        if np.random.uniform() < self.epsilon:
+        if np.random.uniform() > self.epsilon:
             action_values = self.session.run(self.eval_net, feed_dict={self.s: s})
             action = np.argmax(action_values)
         else:
             action = np.random.choice(range(self.n_actions))
         return action
 
-    def store_transition(self, s, a, r, s_):
-        transition = np.hstack((s, a, r, s_))
+    def store_transition(self, s, a, r, s_, terminal):
+        transition = np.hstack((s, a, r, s_, terminal))
         index = self.memory_counter % self.memory_size
         self.memory[index, :] = transition
         self.memory_counter += 1
 
     def learn(self):
         if self.learning_step % self.params_replace_step == 0:
-            self._replace_target_params()
+            self._update_params()
 
         if self.memory_counter <= self.memory_size:
             index = np.random.choice(self.memory_counter, self.batch_size)
@@ -111,17 +112,18 @@ class DoubleDQN(object):
         bs = batch_memory[:, :self.n_states]
         ba = batch_memory[:, self.n_states]
         br = batch_memory[:, self.n_states + 1]
-        bs_ = batch_memory[:, -self.n_states:]
+        bs_ = batch_memory[:, -(self.n_states+1):-1]
+        bt = batch_memory[:, -1]
 
         q_target_next = self.session.run(self.target_net, feed_dict={self.s_: bs_})
 
         if self.double_dqn:
             q_eval_next = self.session.run(self.eval_net, feed_dict={self.s: bs_})
             a4next = np.argmax(q_eval_next, axis=1)
-            q_target = br + q_target_next[np.arange(self.batch_size, dtype=np.int32), a4next]
+            q_target = br + self.gamma * q_target_next[np.arange(self.batch_size, dtype=np.int32), a4next]*bt
         else:
             q_next = np.max(q_target_next, axis=1)
-            q_target = br + self.gamma * q_next
+            q_target = br + self.gamma*q_next*bt
 
         _, loss = self.session.run([self.train_op, self.loss],
                                    feed_dict={self.s: bs,
@@ -131,7 +133,7 @@ class DoubleDQN(object):
         self.loss_his.append(loss)
 
         self.learning_step += 1
-        self.epsilon = self.epsilon_min + (self.epsilon - self.epsilon_min)*np.exp(-self.epsilon_decay*self.learning_step)
+        self.epsilon = (self.epsilon - self.epsilon_min)/self.epsilon_decay_step
 
     def plot_result(self, data, x_label, y_label):
         plt.plot(np.arange(len(data)), data)

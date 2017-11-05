@@ -3,16 +3,23 @@ This is a series of tutorials about Reinforcement Learning implemented by Tensor
 These tutorials don't aim to reproduce the methods used in the original papers, but for algorithms in a quite easy version.  
 Generally they are for learning and basic understanding, but not production.
 
+## Algorithms
 1. Tabular Q Learning
 2. Sarsa
 3. [DQN](https://arxiv.org/abs/1312.5602)  
 4. [Double DQN](https://www.nature.com/nature/journal/v518/n7540/pdf/nature14236.pdf)  
 5. [Double DQN 2.0](https://arxiv.org/abs/1509.06461) 
+6. [Double DQN with Portional Preoritized Experience Replay](https://arxiv.org/abs/1511.05952)
 
-Others will be updated in the near future.   
+More will be updated in the near future.   
+
+## Dependency:  
+1.tensorflow  
+2.gym  
+3.numpy
+
   
-  
-Reference:
+## Reference:
 1. [Movan Zhou]( https://github.com/MorvanZhou/Reinforcement-learning-with-tensorflow)
 2. [Jaromír]( https://github.com/jaara/AI-blog)  
 3. [relaax]( https://github.com/deeplearninc/relaax)

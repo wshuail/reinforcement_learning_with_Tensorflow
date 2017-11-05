@@ -14,11 +14,19 @@ Generally they are for learning and basic understanding, but not production.
 More will be updated in the near future.   
 
 ## Dependency:  
-1.tensorflow  
-2.gym  
-3.numpy
+1.Python3  
+2.Tensorflow  
+3.gym  
+4.numpy  
+5.matplotlib
 
-  
+## Setup and Run
+
+    git clone https://github.com/wangshuailong/reinforcement_learning_with_Tensorflow.git  
+    cd DQN (Or other folds you want)  
+    pytho3 run.py  
+
+
 ## Reference:
 1. [Movan Zhou]( https://github.com/MorvanZhou/Reinforcement-learning-with-tensorflow)
 2. [Jaromír]( https://github.com/jaara/AI-blog)  

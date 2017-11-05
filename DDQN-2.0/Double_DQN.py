@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 
 class DoubleDQN(object):
-    def __init__(self, n_states, n_actions, double_dqn=False, learning_rate=0.001,
+    def __init__(self, n_states, n_actions, double_dqn=False, learning_rate=0.002,
                  epsilon=1, epsilon_min=0.001, epsilon_decay_step=300,
                  gamma=0.95, batch_size=50):
         self.n_states = n_states

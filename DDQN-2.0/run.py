@@ -58,7 +58,7 @@ def run():
         if episode % 50 == 0:
             print('Episode %s Reward %s' % (episode, ep_r))
 
-        if episode >= 100:
+        if episode >= 50:
             avg_reward = total_r / (episode + 1)
             ep_r_hist.append(avg_reward)
             plt.cla()

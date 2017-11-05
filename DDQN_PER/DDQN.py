@@ -85,8 +85,8 @@ class DDQN(object):
     def _build_graph(self):
         self.s = tf.placeholder(tf.float32, shape=[None, self.n_states], name='s')
         self.a = tf.placeholder(tf.int32, shape=[None], name='a')
-        self.s_ = tf.placeholder(tf.float32, shape=[None, self.n_states], name='s')
-        self.q_target = tf.placeholder(tf.float32, shape=[None], name='td_error')
+        self.s_ = tf.placeholder(tf.float32, shape=[None, self.n_states], name='s_')
+        self.q_target = tf.placeholder(tf.float32, shape=[None], name='q_target')
         self.is_weight = tf.placeholder(tf.float32, shape=[None], name='importance_sampling_weights')
 
         self.eval_net = self._build_net(inputs=self.s, scope='eval_net')

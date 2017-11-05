@@ -39,7 +39,6 @@ class DQN(object):
         # build eval net
         self.s = tf.placeholder(tf.float32, [None, self.n_states], name='s')
         self.a = tf.placeholder(tf.int32, [None], name='a')
-        # self.r = tf.placeholder(tf.float32, [None], name='r')
         self.q_target = tf.placeholder(tf.float32, [None], name='q_target')
         self.s_ = tf.placeholder(tf.float32, [None, self.n_states], name='s_')
 

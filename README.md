@@ -11,6 +11,12 @@ Generally they are for learning and basic understanding, but not production.
 5. [Double DQN 2.0](https://arxiv.org/abs/1509.06461) 
 6. [Double DQN with Portional Preoritized Experience Replay](https://arxiv.org/abs/1511.05952)
 7. [Dueling Ddouble DQN](https://arxiv.org/abs/1511.06581)
+8. Policy Gradient
+9. Actor Critic
+10. [DDPG](https://arxiv.org/abs/1509.02971)
+11. [A3C](https://arxiv.org/abs/1602.01783)  
+   A3C including model for discrete and continuous actions, but the one for continuous actions seems doesn't work so well.
+
 
 More will be updated in the near future.   
 

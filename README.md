@@ -10,7 +10,7 @@ Generally they are for learning and basic understanding, but not production.
 4. [Double DQN](https://www.nature.com/nature/journal/v518/n7540/pdf/nature14236.pdf)  
 5. [Double DQN 2.0](https://arxiv.org/abs/1509.06461) 
 6. [Double DQN with Portional Preoritized Experience Replay](https://arxiv.org/abs/1511.05952)
-7. [Dueling Ddouble DQN](https://arxiv.org/abs/1511.06581)
+7. [Dueling Double DQN](https://arxiv.org/abs/1511.06581)
 8. Policy Gradient
 9. Actor Critic
 10. [DDPG](https://arxiv.org/abs/1509.02971)

@@ -112,8 +112,8 @@ class Brain(object):
 
         return mu, sigma, critic_net
 
-    def update_global_params(self, buffer_s, buffer_a, buffer_v_target):
-        feed_dict = {self.s: buffer_s, self.a: buffer_a, self.q_target: buffer_v_target}
+    def update_global_params(self, s, a, dr):
+        feed_dict = {self.s: s, self.a: a, self.q_target: dr}
         self.sess.run([self.update_ga_params_op, self.update_gc_params_op], feed_dict)
 
     def update_local_params(self):

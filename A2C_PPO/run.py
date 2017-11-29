@@ -18,7 +18,7 @@ lowest_action = env.action_space.low
 highest_action = env.action_space.high
 
 agent = PPO(n_states, n_actions, low_action_bound=lowest_action, high_action_bound=highest_action,
-            action_scale=2)
+            mode='CLIP', action_scale=2)
 
 
 def run():
@@ -40,7 +40,6 @@ def run():
             buffer_s.append(s)
             buffer_a.append(a)
             buffer_r.append((r+8)/8)
-            # buffer_r.append(r)
 
             ep_r += r
             total_r += r
@@ -64,7 +63,7 @@ def run():
         avg_ep_r_hist.append(avg_ep_r)
         if episode % 10 == 0:
             print('Episode %s Reward %s' % (episode, avg_ep_r))
-        if episode >= 30:
+        if episode >= 50:
             plt.cla()
             plt.plot(avg_ep_r_hist)
             plt.pause(0.001)

@@ -6,12 +6,21 @@ import tensorflow as tf
 
 
 class PPO(object):
-    def __init__(self, n_states, n_actions, low_action_bound, high_action_bound, actor_lr=0.0001, critic_lr=0.0002,
-                 params_update_iter=32, gamma=0.9, action_scale=1):
+    def __init__(self, n_states, n_actions, low_action_bound, high_action_bound, mode=None, actor_lr=0.0001,
+                 critic_lr=0.0002, params_update_iter=32, gamma=0.9, action_scale=1, kl_lambda=0.5, kl_target=0.01):
         self.n_states = n_states
         self.n_actions = n_actions
         self.low_action_bound = low_action_bound
         self.high_action_bound = high_action_bound
+        if mode is None:
+            self.mode = 'CLIP'
+        else:
+            assert mode in ('CLIP', 'KL'), 'Mode should be one in CLIP or KL'
+            self.mode = mode
+            if self.mode == 'KL':
+                assert kl_lambda is not None and kl_target is not None, 'set kl_lambda and kl_target for KL mode'
+                self.kl_lambda = kl_lambda
+                self.kl_target = kl_target
         self.actor_lr = actor_lr
         self.critic_lr = critic_lr
         self.params_update_iter = params_update_iter
@@ -37,10 +46,11 @@ class PPO(object):
         self.dr = tf.placeholder(tf.float32, [None, 1], name='discounted_r')
         self.advantage = tf.placeholder(tf.float32, [None, 1], name='advantage')
 
-        self.critic_net = self._build_critic_net(scope='critic')
-        self.td = self.dr - self.critic_net
-        self.critic_loss_op = tf.reduce_mean(tf.square(self.td))
-        self.critic_train_op = tf.train.AdamOptimizer(self.critic_lr).minimize(self.critic_loss_op)
+        with tf.variable_scope('critic_net'):
+            self.critic_net = self._build_critic_net(scope='critic')
+            self.td = self.dr - self.critic_net
+            self.critic_loss_op = tf.reduce_mean(tf.square(self.td))
+            self.critic_train_op = tf.train.AdamOptimizer(self.critic_lr).minimize(self.critic_loss_op)
 
         normal_dist, new_params = self._build_actor_net(scope='new_actor', trainable=True)
         normal_dist_old, old_params = self._build_actor_net(scope='old_actor', trainable=False)
@@ -53,8 +63,13 @@ class PPO(object):
         with tf.variable_scope('actor_loss'):
             ratio = normal_dist.prob(self.a)/(normal_dist_old.prob(self.a)+1e-10)
             surrogate = ratio*self.advantage
-            clipping_adv = tf.clip_by_value(ratio, 1-0.2, 1+0.2)*self.advantage
-            actor_loss = -tf.reduce_mean(tf.minimum(surrogate, clipping_adv))
+            if self.mode == 'CLIP':
+                clipping_adv = tf.clip_by_value(ratio, 1-0.2, 1+0.2)*self.advantage
+                actor_loss = -tf.reduce_mean(tf.minimum(surrogate, clipping_adv))
+            else:
+                kl = tf.stop_gradient(tf.contrib.distributions.kl_divergence(normal_dist_old, normal_dist))
+                self.kl_mean = tf.reduce_mean(kl)
+                actor_loss = -tf.reduce_mean(surrogate - self.kl_lambda*kl)
 
         with tf.variable_scope('actor_train'):
             self.actor_train_op = tf.train.AdamOptimizer(self.actor_lr).minimize(actor_loss)
@@ -102,7 +117,21 @@ class PPO(object):
 
         # update actor
         actor_feed_dict = {self.s: s, self.a: a, self.advantage: advantage}
-        [self.session.run(self.actor_train_op, feed_dict=actor_feed_dict) for _ in range(self.actor_update_steps)]
+        if self.mode == 'CLIP':
+            [self.session.run(self.actor_train_op, feed_dict=actor_feed_dict) for _ in range(self.actor_update_steps)]
+        else:
+            kl_mean_value = 0
+            for _ in range(self.actor_update_steps):
+                _, kl_mean_value = self.session.run([self.actor_train_op, self.kl_mean],
+                                                    feed_dict=actor_feed_dict)
+                if kl_mean_value > 4*self.kl_target:
+                    break
+            if kl_mean_value < self.kl_target/1.5:
+                self.kl_lambda /= 2
+            elif kl_mean_value >= self.kl_target/1.5:
+                self.kl_lambda *= 2
+            self.kl_lambda = np.clip(self.kl_lambda, 1e-4, 10)
+
         # update critic
         [self.session.run(self.critic_train_op, {self.s: s, self.dr: r}) for _ in range(self.critic_update_steps)]
 

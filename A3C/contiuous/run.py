@@ -1,6 +1,9 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# @Time    : 2017/11/29 18:22
+# @Author  : Wang Shuailong
 
+from __future__ import print_function
 import multiprocessing
 import threading
 import tensorflow as tf
@@ -12,28 +15,27 @@ GAME = 'Pendulum-v0'
 
 
 def run():
-    coord = tf.train.Coordinator()
-    session = tf.Session()
-    session.run(tf.global_variables_initializer())
-    with tf.device('/cpu:0'):
-        Brain(scope='global', env=Environment(name=GAME))
+    sess = tf.Session()
 
-        agents = []
+    with tf.device("/cpu:0"):
+        env = Environment(GAME)
+        Brain('global', sess, env=env)
+        workers = []
         cpu_number = multiprocessing.cpu_count()
         for i in range(cpu_number-2):
-            env = Environment(name=GAME)
-            agent = Agent(number=i, env=env, coordinator=coord)
-            agents.append(agent)
+            env = Environment(GAME)
+            workers.append(Agent(i, sess, env))
 
-    agent_threads = []
+    coord = tf.train.Coordinator()
+    sess.run(tf.global_variables_initializer())
 
-    for agent in agents:
-        job = lambda: agent.work()
+    worker_threads = []
+    for worker in workers:
+        job = lambda: worker.work()
         t = threading.Thread(target=job)
         t.start()
-
-        agent_threads.append(t)
-    coord.join(agent_threads)
+        worker_threads.append(t)
+    coord.join(worker_threads)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,7 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# @Time    : 2017/11/29 18:23
+# @Author  : Wang Shuailong
 
 import gym
 
@@ -14,8 +16,6 @@ class Environment(object):
         self.n_actions = env.action_space.shape[0]
         self.a_low_bound = env.action_space.low
         self.a_high_bound = env.action_space.high
-        self.r_low_bound = -16.3
-        self.r_high_bound = 0
 
     def reset(self):
         return self.env.reset()
